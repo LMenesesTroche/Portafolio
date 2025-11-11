@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fondo Líquido WebGL</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="webgl-background"></div>
+
+    <script id="vertexShader" type="x-shader/x-vertex">
+        void main() {
+            gl_Position = vec4(position, 1.0);
+        }
+    </script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+    precision highp float;
+
+uniform float u_time;
+uniform vec2 u_resolution;
+uniform vec2 u_mouse;
+
+// Simplified Noise Function (Hash-based)
+float random(vec2 st) {
+    // Convierte la entrada vec2 en un valor pseudo-aleatorio flotante
+    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}
+
+// Function to create smooth, flowing noise
+float noise(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    
+    // Suavizado de interpolación de las esquinas del grid
+    float a = random(i);
+    float b = random(i + vec2(1.0, 0.0));
+    float c = random(i + vec2(0.0, 1.0));
+    float d = random(i + vec2(1.0, 1.0));
+
+    // Curva de suavizado
+    vec2 u = f * f * (3.0 - 2.0 * f);
+
+    // Interpolación bilineal suave
+    return mix(a, b, u.x) + 
+           (c - a) * u.y * (1.0 - u.x) + 
+           (d - b) * u.x * u.y;
+}
+
+// Main rendering function
+void main() {
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    vec2 aspect = u_resolution.xy / u_resolution.y;
+    vec2 p = (uv * 2.0 - 1.0) * aspect;
+
+    // Distorsión fluida y animación
+    float n = 0.0;
+    // Combinación de ruido en diferentes octavas
+    n += noise(p * 1.0 + u_time * 0.1) * 0.5;
+    n += noise(p * 2.0 + u_time * 0.2) * 0.25;
+    n += noise(p * 4.0 + u_time * 0.3) * 0.125;
+    n = n * 2.0;
+
+    // Definición de colores
+    vec3 colorA = vec3(0.0, 0.0, 0.2);     
+    vec3 colorB = vec3(0.5, 0.3, 0.8);     
+    vec3 colorC = vec3(0.9, 0.4, 0.2);     
+    
+    // Mezcla de colores
+    vec3 finalColor = mix(colorA, colorB, n);
+    finalColor = mix(finalColor, colorC, smoothstep(0.5, 1.0, n));
+    
+    gl_FragColor = vec4(finalColor, 1.0);
+}
+    </script>
+
+    <script src="script.js"></script>
+</body>
+</html>

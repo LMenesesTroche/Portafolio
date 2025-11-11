@@ -1,0 +1,14 @@
+body {
+    margin: 0;
+    overflow: hidden; /* Evita barras de desplazamiento innecesarias */
+    background-color: #000; /* Color de fallback */
+}
+
+#webgl-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1; /* Mantiene el fondo detrás del contenido HTML normal */
+}
